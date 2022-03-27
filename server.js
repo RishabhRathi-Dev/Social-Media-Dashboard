@@ -24,12 +24,6 @@ app.get('/index.html', function(req, res){
 
 // Use Routers for all the connections 
 
-function jsonParser(stringValue) {
-
-    var string = JSON.stringify(stringValue);
-    var objectValue = JSON.parse(string);
-    return objectValue;
-}
 
 // Sign in and log
 
@@ -72,3 +66,54 @@ google.youtube("v3").channels.list({
         var videoCount = StatArray[3]
     });
 }).catch((err)=> console.log(err))
+
+
+
+// Twitter (Completed Needed things) (Can get a array of redirecting link to the specified tweet or we can emmbed it)
+
+// need to set up auth anyways
+const {TwitterApi} = require('twitter-api-v2');
+const { count } = require("console");
+
+const client = new TwitterApi({
+    appKey: process.env.TWITTER_API_KEY,
+    appSecret: process.env.TWITTER_API_SECRET,
+    accessToken: process.env.TWITTER_ACCESS_TOKEN,
+    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+});
+
+// thinking of keeping the tweets info for latest 20 tweets only for now
+
+ 
+client.v2.userByUsername('akshaykumar', {"user.fields": "public_metrics"}).then((val) => {
+    //console.log(val)
+    var dataArray = val.data
+    var userID = dataArray.id
+    //console.log(userID)
+
+    var userMetricsArray = dataArray.public_metrics // This will have total followers_count, following_count, listed_count, tweet_count
+    //console.log(userMetricsArray)
+
+    
+    client.v2.userTimeline(userID, {"tweet.fields": "public_metrics", "max_results": "100"}).then((val2) => {
+        //console.log(val2)
+        var dataArray2 = val2.data
+        var last100tweetArray = dataArray2.data
+        
+        last100tweetArray.forEach(element => {
+            //console.log(element)
+            var metricsArray = element.public_metrics  // last 100 tweets data required data from it :: retweet_count, reply_count, like_count, quote_count
+            //console.log(metricsArray)
+        })
+        
+    }).catch((err) => {
+        console.log(err)
+    })
+
+}).catch((err) => {
+    console.log(err)
+})
+
+
+
+
