@@ -14,6 +14,7 @@
     "express": "^4.17.3",
     "fetch": "^1.1.0",
     "googleapis": "^98.0.0",
+    "superagent": "^7.1.2",
     "twitter-api-v2": "^1.11.2"
   }
 }

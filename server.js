@@ -7,10 +7,12 @@ var express = require("express");
 const res = require("express/lib/response");
 const { ids } = require("googleapis/build/src/apis/ids");
 const { json } = require("express/lib/response");
+const superagent = require('superagent');
 
 var app = express()
 
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+const request = require("superagent");
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
@@ -49,161 +51,67 @@ app.get('/views/selectplatform.html', function(req, res){
 
 // Youtube
 
-//RetriveData()
+app.post("/youtubedata", function(req, res){
 
-async function YoutubeAPIcall(){
+    var finalYdata = []
 
-var YoutubeData = []
+    var YUSERNAME = req.body.Youtube || 'Pewdiepie'
 
-// This part gets viewcount, subscriber count and video count of the entered youtube username
-google.youtube("v3").channels.list({
-    key: process.env.YOUTUBE_API,
-    part: 'statistics, contentDetails', // 'snippet'
-    forUsername: "Pewdiepie", // change to a varaiable // point to be noted username is not always same as channel name
-}).then((response) =>{
-    //console.log("statistics")
-    const {data} = response;
-    //console.log(data)
-    const {items} = data;
+    let getchnlID = async (YUSERNAME) => {
+        const response = await request
+            .get('https://www.googleapis.com/youtube/v3/channels')
+            .query({forUsername : YUSERNAME})
+            .query({key : process.env.YOUTUBE_API3})
+            .query({part: 'statistics'});
 
-    items.forEach(element => {
-        // needs rewrite since not getting latest videos
-        //console.log(element)
-        const {id} = element
-        const {statistics} = element
-        var StatArray = Object.values(statistics)
-        //console.log(statistics)
+        let id = response.body.items[0].id
 
-        const {contentDetails} = element
-        const {relatedPlaylists} = contentDetails
-        var contentDetailsArray = Object.values(relatedPlaylists) 
-        var uploadedPlaylistID = contentDetailsArray[1]
+        const reID = id
 
-        getUploadedPlaylistData(id) // uses channel id and search 
-    
-        var viewCount = StatArray[0]
-        var subscriberCount = StatArray[1]
-        var videoCount = StatArray[3]
-
-        EnterDatainYData1(StatArray)
-    });
-}).catch((err)=> console.log(err))
-
-var VideoMetricsArray = {} // date: array
-
-
-
-function getUploadedPlaylistData(channelId){
-    // This part will get latest 50 videos
-
-    google.youtube("v3").search.list({
-        key: process.env.YOUTUBE_API,
-        part: 'snippet',
-        channelId: channelId,
-        type: "video",
-        maxResults: "20",
-        order: 'date',
-        safeSearch: 'none',
-        videoType: 'any',
-        videoDuration: 'any',
-    }).then((response) => {
-        //console.log(response) // modify response to get data 
-        var resData = response.data
-        const {items} = resData
-
-        var key = 0
-
-        items.forEach(element => {
-            //var id = Object.values(id)
-            //const {videoID} = id
-            //console.log(element)
-
-            var elementDataArray = Object.values(element)
-            //console.log(elementDataArray)
-
-            var videokindobject = elementDataArray[2]
-            var videokindarray = Object.values(videokindobject)
-            //console.log(videokindarray)
-            var videoID = videokindarray[1]
-            //console.log(videoID)
-            
-            var forVideoTitleobject = elementDataArray[3]
-            var forVideoTitlearray = Object.values(forVideoTitleobject)
-            var videoTitle = forVideoTitlearray[2]
-            var date = forVideoTitlearray[0]
-
-            //console.log(videoID)
-            getVideoData(videoID, videoTitle, key, date)
-            key++;
-        })
-
-    }).catch((err) => {
-        console.log(err)
- 
-    })
-}
-
-function getVideoData(videoID, videoTitle, key, date){
-  
-    // This part will get vidio 's stats
-    google.youtube("v3").videos.list({
-        key: process.env.YOUTUBE_API,
-        part: 'statistics',
-        id: videoID,
-    }).then((response) => {
-        var resDATA = response.data
-        const {items} = resDATA
-        
-        items.forEach(element => {
-            const {statistics} = element
-            //console.log(statistics)
-            var statsArray = Object.values(statistics) // values :: 0: viewCount, 1:likeCount, 2:favouriteCount(no use), 3: commentCount
-            //console.log(statsArray)
-
-            statsArray.push(videoTitle) // 4 : videoTitle
-
-            EnterDatainYData(date, statsArray)
-        })
-
-        
-    }).then((res) => {
-        FinaliseYData()
-    }).catch((err) => {
-        console.log(err)
-    }).catch((err)=> {
-        console.log(err)
-    })
-}
-
-
-//console.log(VideoMetricsArray)
-YoutubeData.push(VideoMetricsArray)
-
-async function EnterDatainYData1(statsArray){
-    YoutubeData.push(statsArray)
-}
-
-async function EnterDatainYData(date, statsArray){
-    VideoMetricsArray[date] = statsArray
-}
-
-function FinaliseYData(){
-    if (!VideoMetricsArray in YoutubeData){
-        YoutubeData.push(VideoMetricsArray)
-        //console.log(YoutubeData)
+        return reID
     }
-}
 
+    let channelData = async (YUSERNAME) => {
+        const response = await request
+            .get('https://www.googleapis.com/youtube/v3/channels')
+            .query({forUsername: YUSERNAME})
+            .query({key : process.env.YOUTUBE_API3})
+            .query({part: 'statistics'});
 
-return YoutubeData;
+        let data = response.body.items[0].statistics
 
-}
+        const retDATA = data
 
-async function RetriveData(){
-    var finalYData = await YoutubeAPIcall()
-    finalYData = JSON.stringify(finalYData)
-    console.info(finalYData)
-}
+        return retDATA
+    }
+
+    //finalYdata.push(await channelData(YUSERNAME))
+    
+    (async () => {
+        console.log(await channelData(YUSERNAME))
+     })()
+    
+    let VideoList = async (getchnlID) => {
+        const response = await request
+            .get('https://www.googleapis.com/youtube/v3/search')
+            .query({channelId : getchnlID})
+            .query({key : process.env.YOUTUBE_API3})
+            .query({part: 'snippet'})
+            .query({maxResults: '20'})
+            .query({order : 'date'})
+            .query({safeSearch : 'none'})
+            .query({type : 'video'});
+
+        let videoL = response.body.items
+
+        return videoL
+    }
+
+    (async () => {
+        console.log(await VideoList(await getchnlID(YUSERNAME)))
+     })()
+})
+
 
 // Twitter (Completed Needed things) (Can get a array of redirecting link to the specified tweet or we can emmbed it)
 
