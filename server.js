@@ -1,14 +1,18 @@
 var http = require("http");
 var url = require('url');
-const { google } = require("googleapis")
+const https = require('https');
 require('dotenv').config();
 
 var express = require("express");
 const res = require("express/lib/response");
-const { ids } = require("googleapis/build/src/apis/ids");
-const { json } = require("express/lib/response");
 
 var app = express()
+
+var bodyParser = require('body-parser');
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: false}))
+
+app.set('view engine', 'ejs');
 
 const server = app.listen(0 || 8082, ()=>{
     console.log('Listening on port:', server.address().port);
@@ -24,96 +28,89 @@ app.get('/index.html', function(req, res){
 
 // Use Routers for all the connections 
 
-
-// Sign in and log
-
-app.get('/login.html', function(req, res){
-    res.sendFile(__dirname + '/login.html');
-})
-
-app.get('/signup.html', function(req, res){
-    res.sendFile(__dirname + '/signup.html');
-})
-
-// Selection Page
-
-app.get('/views/selectplatform.html', function(req, res){
-    res.sendFile(__dirname + '/views/selectplatform.html');
-})
-
 // API
-
-
-// This part gets viewcount, subscriber count and video count of the entered youtube channel
-google.youtube("v3").channels.list({
-    key: process.env.YOUTUBE_API,
-    part: 'statistics',
-    forUsername: 'Pewdiepie',
-}).then((response) =>{
-    console.log("statistics")
-    const {data} = response;
-    //console.log(data)
-    const {items} = data;
-
-    items.forEach(element => {
-        //console.log(element)
-        const {statistics} = element
-        var StatArray = Object.values(statistics)
-        //console.log(statistics)
-
-        var viewCount = StatArray[0]
-        var subscriberCount = StatArray[1]
-        var videoCount = StatArray[3]
-    });
-}).catch((err)=> console.log(err))
-
-
 
 // Twitter (Completed Needed things) (Can get a array of redirecting link to the specified tweet or we can emmbed it)
 
-// need to set up auth anyways
-const {TwitterApi} = require('twitter-api-v2');
-const { count } = require("console");
 
-const client = new TwitterApi({
-    appKey: process.env.TWITTER_API_KEY,
-    appSecret: process.env.TWITTER_API_SECRET,
-    accessToken: process.env.TWITTER_ACCESS_TOKEN,
-    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
+app.post("/twitterdata", function(req, res){
+    var twitterData; // contains everydata from twitter needed // 0 index is user data entry after that there is data of 100 latest tweets 
 
-// thinking of keeping the tweets info for latest 20 tweets only for now
+    var TUSERNAME = req.body.Twitter
+    // need to set up auth anyways
+    const {TwitterApi} = require('twitter-api-v2');
+    const { count } = require("console");
 
- 
-client.v2.userByUsername('akshaykumar', {"user.fields": "public_metrics"}).then((val) => {
-    //console.log(val)
-    var dataArray = val.data
-    var userID = dataArray.id
-    //console.log(userID)
+    const client = new TwitterApi({
+        appKey: process.env.TWITTER_API_KEY,
+        appSecret: process.env.TWITTER_API_SECRET,
+        accessToken: process.env.TWITTER_ACCESS_TOKEN,
+        accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+    });
 
-    var userMetricsArray = dataArray.public_metrics // This will have total followers_count, following_count, listed_count, tweet_count
-    //console.log(userMetricsArray)
+    // thinking of keeping the tweets info for latest 20 tweets only for now
 
-    
-    client.v2.userTimeline(userID, {"tweet.fields": "public_metrics", "max_results": "100"}).then((val2) => {
-        //console.log(val2)
-        var dataArray2 = val2.data
-        var last100tweetArray = dataArray2.data
+    // change to a variable
+    client.v2.userByUsername(TUSERNAME, {"user.fields": "public_metrics"}).then((val) => {
+        //console.log(val)
+        twitterData = []
+        var dataArray = val.data
+        var userID = dataArray.id
+        //console.log(userID)
+
+        var userMetricsObject = dataArray.public_metrics // This will have total followers_count, following_count, listed_count, tweet_count
+        var userMetricsArray = Object.values(userMetricsObject)
+
+        twitterData.push(userMetricsArray)
+
+        //console.log(userMetricsArray)
+
         
-        last100tweetArray.forEach(element => {
-            //console.log(element)
-            var metricsArray = element.public_metrics  // last 100 tweets data required data from it :: retweet_count, reply_count, like_count, quote_count
-            //console.log(metricsArray)
+        client.v2.userTimeline(userID, {"tweet.fields": "public_metrics", "max_results": "20"}).then((val2) => {
+            //console.log(val2)
+            var dataArray2 = val2.data
+            var last100tweetArray = dataArray2.data
+            
+            last100tweetArray.forEach(element => {
+                //console.log(element)
+                var metricsObjects = element.public_metrics  // last 100 tweets data required data from it :: retweet_count, reply_count, like_count, quote_count
+                //var tweetText = element.text
+                var tweetID = element.id
+
+                //app.render('https://publish.twitter.com/oembed?url=https%3A%2F%2Ftwitter.com%2FInterior%2Fstatus%2F'+tweetID)
+                
+                //console.log(embTweet)
+
+                var metricsArray = Object.values(metricsObjects)
+                metricsArray.push(tweetID)
+                //console.log(metricsObjects)
+                //console.log(metricsArray)
+                twitterData.push(metricsArray)
+            })
+            
+        }).then((res) =>{
+            //console.log(twitterData)
+            return twitterData
+        }).then((response) => {
+            var userData = response[0] // user data 
+            var tweetData = response.splice(1) // Whole data with tweet id
+            var tweetIDs = []
+
+            tweetData.forEach(element => {
+                tweetIDs.push(element[4])
+                element.pop()
+            });
+
+            res.render(__dirname + '/views/pages/result.ejs', {tweetData:tweetData, userData: userData, tweetIDs: tweetIDs, userName: TUSERNAME})
+
+        }).catch((err) => {
+            console.log(err)
         })
-        
+    
     }).catch((err) => {
         console.log(err)
     })
 
-}).catch((err) => {
-    console.log(err)
-})
-
-
-
+}
+)
 
