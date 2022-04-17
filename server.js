@@ -1,20 +1,18 @@
 var http = require("http");
 var url = require('url');
-const { google } = require("googleapis")
+const https = require('https');
 require('dotenv').config();
 
 var express = require("express");
 const res = require("express/lib/response");
-const { ids } = require("googleapis/build/src/apis/ids");
-const { json } = require("express/lib/response");
-const superagent = require('superagent');
 
 var app = express()
 
 var bodyParser = require('body-parser');
-const request = require("superagent");
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
+
+app.set('view engine', 'ejs');
 
 const server = app.listen(0 || 8082, ()=>{
     console.log('Listening on port:', server.address().port);
@@ -30,88 +28,7 @@ app.get('/index.html', function(req, res){
 
 // Use Routers for all the connections 
 
-
-// Sign in and log
-
-app.get('/login.html', function(req, res){
-    res.sendFile(__dirname + '/login.html');
-})
-
-app.get('/signup.html', function(req, res){
-    res.sendFile(__dirname + '/signup.html');
-})
-
-// Selection Page
-
-app.get('/views/selectplatform.html', function(req, res){
-    res.sendFile(__dirname + '/views/selectplatform.html');
-})
-
 // API
-
-// Youtube
-
-app.post("/youtubedata", function(req, res){
-
-    var finalYdata = []
-
-    var YUSERNAME = req.body.Youtube || 'Pewdiepie'
-
-    let getchnlID = async (YUSERNAME) => {
-        const response = await request
-            .get('https://www.googleapis.com/youtube/v3/channels')
-            .query({forUsername : YUSERNAME})
-            .query({key : process.env.YOUTUBE_API3})
-            .query({part: 'statistics'});
-
-        let id = response.body.items[0].id
-
-        const reID = id
-
-        return reID
-    }
-
-    let channelData = async (YUSERNAME) => {
-        const response = await request
-            .get('https://www.googleapis.com/youtube/v3/channels')
-            .query({forUsername: YUSERNAME})
-            .query({key : process.env.YOUTUBE_API3})
-            .query({part: 'statistics'});
-
-        let data = response.body.items[0].statistics
-
-        const retDATA = data
-
-        return retDATA
-    }
-
-    //finalYdata.push(await channelData(YUSERNAME))
-    
-    (async () => {
-        console.log(await channelData(YUSERNAME))
-     })()
-    
-    let VideoList = async (getchnlID) => {
-        const response = await request
-            .get('https://www.googleapis.com/youtube/v3/search')
-            .query({channelId : getchnlID})
-            .query({key : process.env.YOUTUBE_API3})
-            .query({part: 'snippet'})
-            .query({maxResults: '20'})
-            .query({order : 'date'})
-            .query({safeSearch : 'none'})
-            .query({type : 'video'});
-
-        let videoL = response.body.items
-
-        return videoL
-    }
-
-    (async () => {
-        console.log(await VideoList(await getchnlID(YUSERNAME)))
-     })()
-})
-
 
 // Twitter (Completed Needed things) (Can get a array of redirecting link to the specified tweet or we can emmbed it)
 
@@ -134,7 +51,7 @@ app.post("/twitterdata", function(req, res){
     // thinking of keeping the tweets info for latest 20 tweets only for now
 
     // change to a variable
-    client.v2.userByUsername('akshaykumar', {"user.fields": "public_metrics"}).then((val) => {
+    client.v2.userByUsername(TUSERNAME, {"user.fields": "public_metrics"}).then((val) => {
         //console.log(val)
         twitterData = []
         var dataArray = val.data
@@ -157,9 +74,15 @@ app.post("/twitterdata", function(req, res){
             last100tweetArray.forEach(element => {
                 //console.log(element)
                 var metricsObjects = element.public_metrics  // last 100 tweets data required data from it :: retweet_count, reply_count, like_count, quote_count
-                var tweetText = element.text
+                //var tweetText = element.text
+                var tweetID = element.id
+
+                //app.render('https://publish.twitter.com/oembed?url=https%3A%2F%2Ftwitter.com%2FInterior%2Fstatus%2F'+tweetID)
+                
+                //console.log(embTweet)
+
                 var metricsArray = Object.values(metricsObjects)
-                metricsArray.push(tweetText)
+                metricsArray.push(tweetID)
                 //console.log(metricsObjects)
                 //console.log(metricsArray)
                 twitterData.push(metricsArray)
@@ -169,7 +92,17 @@ app.post("/twitterdata", function(req, res){
             //console.log(twitterData)
             return twitterData
         }).then((response) => {
-            res.send(JSON.stringify(response))
+            var userData = response[0] // user data 
+            var tweetData = response.splice(1) // Whole data with tweet id
+            var tweetIDs = []
+
+            tweetData.forEach(element => {
+                tweetIDs.push(element[4])
+                element.pop()
+            });
+
+            res.render(__dirname + '/views/pages/result.ejs', {tweetData:tweetData, userData: userData, tweetIDs: tweetIDs, userName: TUSERNAME})
+
         }).catch((err) => {
             console.log(err)
         })

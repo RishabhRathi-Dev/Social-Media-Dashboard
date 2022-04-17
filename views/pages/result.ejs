@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head'); %>
+  <script sync src="https://platform.twitter.com/widgets.js"></script>
+</head>
+<body class="container">
+
+<header>
+  <%- include('../partials/header'); %>
+</header>
+
+<style>
+  table {
+    width: 100%;
+  }
+
+  table, th, td {
+  padding: 10px;
+  border: 2px solid black;
+  border-collapse: collapse;
+}
+</style>
+
+<main>
+  <div class="jumbotron">
+    <h1>@<%= userName %></h1>
+    
+      
+        <p>
+          Followers : <%= userData[0]%> <br>
+          Following : <%= userData[1]%> <br>
+          Listed : <%= userData[2]%> <br>
+          Tweets : <%= userData[3]%> <br>
+        </p>
+
+      <table>
+        <tr>
+          <th>S.No</th>
+          <th>Tweets</th>
+          <th>Retweets</th>
+          <th>Replies</th>
+          <th>Likes</th>
+          <th>Quotes</th>
+        </tr>
+        <% for(var i=0; i < tweetIDs.length; i++) { %>
+           <tr>
+             <td><%= i+1 %></td>
+             <td><div class="tweets" id = <%= i %> tweetID = <%= tweetIDs[i] %> ></div></td>
+             <td><%= tweetData[i][0] %></td>
+             <td><%= tweetData[i][1] %></td>
+             <td><%= tweetData[i][2] %></td>
+             <td><%= tweetData[i][3] %></td>
+           </tr>
+        <% } %>
+        </table>
+
+
+  </div>
+</main>
+
+<footer>
+  <%- include('../partials/footer'); %>
+</footer>
+
+
+
+    <script>
+    window.onload = function () {
+      var elements = document.getElementsByClassName('tweets');
+
+      for (var i = 0, length = elements.length; i < length; i++){
+        var tweet = document.getElementById(i.toString());
+        var id = tweet.getAttribute('tweetID');
+
+        twttr.widgets
+        .createTweet(id, tweet, {
+            conversation: 'none', // or all
+            cards: 'hidden', // or visible
+            linkColor: '#cc0000', // default is blue
+            theme: 'light', // or dark
+        })
+        .then(function (el) {
+            el.contentDocument.querySelector('.footer').style.display = 'none';
+        });
+
+        tweet.id = id
+
+      }
+    };
+    </script>
+
+
+</body>
+</html>
