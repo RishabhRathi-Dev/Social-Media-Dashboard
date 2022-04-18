@@ -42,6 +42,7 @@
           <th>Replies</th>
           <th>Likes</th>
           <th>Quotes</th>
+          <th>Score</th>
         </tr>
         <% for(var i=0; i < tweetIDs.length; i++) { %>
            <tr>
@@ -51,6 +52,25 @@
              <td><%= tweetData[i][1] %></td>
              <td><%= tweetData[i][2] %></td>
              <td><%= tweetData[i][3] %></td>
+
+             <!-- Scoring formula
+              
+              (likes + retweets + quotes) * 1000 / (2 * listed)
+              
+              2 only not 3 because quotes are a kind of retweets 
+
+            -->
+
+             <td><%
+              if (userData[2] > 0) { %>
+                <%= ((tweetData[i][0] + tweetData[i][2] + tweetData[i][3])*1000/(2*userData[2])).toFixed(2) %>
+              <%
+              }
+              else { %>
+                0
+              <%  
+              }
+                %></td>
            </tr>
         <% } %>
         </table>
