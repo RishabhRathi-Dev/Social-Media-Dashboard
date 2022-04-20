@@ -19,7 +19,11 @@
   padding: 10px;
   border: 2px solid black;
   border-collapse: collapse;
+  text-align: center;
 }
+
+
+
 </style>
 
 <main>
@@ -33,7 +37,8 @@
           Listed : <%= userData[2]%> <br>
           Tweets : <%= userData[3]%> <br>
         </p>
-
+      
+      <div style="overflow-x:auto;">
       <table>
         <tr>
           <th>S.No</th>
@@ -74,6 +79,7 @@
            </tr>
         <% } %>
         </table>
+      </div>
 
 
   </div>

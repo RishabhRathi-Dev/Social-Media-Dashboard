@@ -14,6 +14,9 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 app.set('view engine', 'ejs');
 
+app.use(express.static('public')); 
+app.use('/images', express.static('images'));
+
 const server = app.listen(0 || 8082, ()=>{
     console.log('Listening on port:', server.address().port);
 });
