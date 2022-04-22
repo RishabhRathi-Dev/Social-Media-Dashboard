@@ -3,6 +3,8 @@
 <head>
   <%- include('../partials/head'); %>
   <script sync src="https://platform.twitter.com/widgets.js"></script>
+  <script type="text/javascript" src="https://cdn.rawgit.com/asvd/dragscroll/master/dragscroll.js"></script>
+    </head>
 </head>
 <body class="container">
 
@@ -20,7 +22,7 @@
   border: 2px solid black;
   border-collapse: collapse;
   text-align: center;
-}
+  }
 
 
 
@@ -38,7 +40,7 @@
           Tweets : <%= userData[3]%> <br>
         </p>
       
-      <div style="overflow-x:auto;">
+      <div class="dragscroll" style="overflow: hidden; cursor: default; cursor : -o-grab; cursor : -moz-grab; cursor : -webkit-grab;">
       <table>
         <tr>
           <th>S.No</th>
@@ -92,6 +94,7 @@
 
 
     <script>
+
     window.onload = function () {
       var elements = document.getElementsByClassName('tweets');
 
