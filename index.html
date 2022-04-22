@@ -31,14 +31,16 @@
         display: inline-block;
         text-align: center;
         width: auto;
-        margin-left: 480px;
-        margin-top: 30px;
+        margin-left:50%;
+        transform: translate(-50%,0);
+
     }
     
     #logo {
         display: inline-block;
         position: absolute;
-        left: 24px;
+        margin-left:1%;
+        transform: translate(-1%,0);
         top: 0px;
         padding: 0px 20px;
     }
@@ -48,6 +50,7 @@
         width: 150px;
         margin: 0px;
         padding: 0px;
+        transform: translate(-20%, -20%);
     }
     
     .navbar {
@@ -150,7 +153,9 @@
 
 <body>
     <div id="logo">
-        <img src="/images/logo.png" alt="logo">
+        <a href="/">
+            <img src="/images/logo.png" alt="logo">
+        </a>
     </div>
 
     <h1>PEEK-The Social Media Dashboard</h1>
