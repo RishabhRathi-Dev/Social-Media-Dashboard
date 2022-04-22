@@ -17,9 +17,15 @@ app.set('view engine', 'ejs');
 app.use(express.static('public')); 
 app.use('/images', express.static('images'));
 
+/* For local only 
+
 const server = app.listen(0 || 8082, ()=>{
     console.log('Listening on port:', server.address().port);
 });
+*/
+
+const server = app.listen(process.env.PORT)
+
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + "/" + "index.html");
