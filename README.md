@@ -22,8 +22,8 @@ This project was done for Project Exhibition 2 towards our BTech Degree. Our Tea
 - Heroku (deployment)
 
 # Screenshots
-Front Page
+### Front Page
 ![FrontPage](images/frontpage.jpg)
 
-Result Page
+### Result Page
 ![Result](images/result.jpg)
